@@ -19,15 +19,7 @@ function Canvas({
   const isDrawing = useRef(false);
   const currentStroke = useRef<Stroke | null>(null);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }, []);
-
-  useEffect(() => {
+  const redrawCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -44,19 +36,58 @@ function Canvas({
       ctx.lineWidth = stroke.brushSize;
       ctx.lineCap = "round";
 
-      ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+      ctx.moveTo(
+        stroke.points[0].x,
+        stroke.points[0].y
+      );
 
       for (let i = 1; i < stroke.points.length; i++) {
-        ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+        ctx.lineTo(
+          stroke.points[i].x,
+          stroke.points[i].y
+        );
       }
 
       ctx.stroke();
     });
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      redrawCanvas();
+    };
+
+    resizeCanvas();
+
+    window.addEventListener(
+      "resize",
+      resizeCanvas
+    );
+
+    return () => {
+      window.removeEventListener(
+        "resize",
+        resizeCanvas
+      );
+    };
   }, [strokes]);
 
-  const getPoint = (e: MouseEvent): Point => {
+  useEffect(() => {
+    redrawCanvas();
+  }, [strokes]);
+
+  const getPoint = (
+    e: MouseEvent
+  ): Point => {
     const canvas = canvasRef.current!;
-    const rect = canvas.getBoundingClientRect();
+    const rect =
+      canvas.getBoundingClientRect();
 
     return {
       x: e.clientX - rect.left,
@@ -64,7 +95,9 @@ function Canvas({
     };
   };
 
-  const startDrawing = (e: MouseEvent) => {
+  const startDrawing = (
+    e: MouseEvent
+  ) => {
     isDrawing.current = true;
 
     currentStroke.current = {
@@ -75,27 +108,43 @@ function Canvas({
   };
 
   const draw = (e: MouseEvent) => {
-    if (!isDrawing.current || !currentStroke.current) return;
+    if (
+      !isDrawing.current ||
+      !currentStroke.current
+    )
+      return;
 
-    currentStroke.current.points.push(getPoint(e));
+    currentStroke.current.points.push(
+      getPoint(e)
+    );
 
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
 
     if (!canvas || !ctx) return;
 
-    const points = currentStroke.current.points;
+    const points =
+      currentStroke.current.points;
+
     const len = points.length;
 
     if (len < 2) return;
 
     ctx.beginPath();
+
     ctx.strokeStyle = selectedColor;
     ctx.lineWidth = brushSize;
     ctx.lineCap = "round";
 
-    ctx.moveTo(points[len - 2].x, points[len - 2].y);
-    ctx.lineTo(points[len - 1].x, points[len - 1].y);
+    ctx.moveTo(
+      points[len - 2].x,
+      points[len - 2].y
+    );
+
+    ctx.lineTo(
+      points[len - 1].x,
+      points[len - 1].y
+    );
 
     ctx.stroke();
   };
@@ -113,18 +162,49 @@ function Canvas({
 
   useEffect(() => {
     const canvas = canvasRef.current;
+
     if (!canvas) return;
 
-    canvas.addEventListener("mousedown", startDrawing);
-    canvas.addEventListener("mousemove", draw);
-    canvas.addEventListener("mouseup", stopDrawing);
-    canvas.addEventListener("mouseleave", stopDrawing);
+    canvas.addEventListener(
+      "mousedown",
+      startDrawing
+    );
+
+    canvas.addEventListener(
+      "mousemove",
+      draw
+    );
+
+    canvas.addEventListener(
+      "mouseup",
+      stopDrawing
+    );
+
+    canvas.addEventListener(
+      "mouseleave",
+      stopDrawing
+    );
 
     return () => {
-      canvas.removeEventListener("mousedown", startDrawing);
-      canvas.removeEventListener("mousemove", draw);
-      canvas.removeEventListener("mouseup", stopDrawing);
-      canvas.removeEventListener("mouseleave", stopDrawing);
+      canvas.removeEventListener(
+        "mousedown",
+        startDrawing
+      );
+
+      canvas.removeEventListener(
+        "mousemove",
+        draw
+      );
+
+      canvas.removeEventListener(
+        "mouseup",
+        stopDrawing
+      );
+
+      canvas.removeEventListener(
+        "mouseleave",
+        stopDrawing
+      );
     };
   }, [selectedColor, brushSize]);
 
@@ -133,6 +213,8 @@ function Canvas({
       ref={canvasRef}
       style={{
         display: "block",
+        width: "100vw",
+        height: "100vh",
       }}
     />
   );

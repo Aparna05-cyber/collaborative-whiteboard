@@ -16,15 +16,44 @@ const io = new Server(server, {
   },
 });
 
+const roomStrokes = {};
+
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("draw-stroke", (stroke) => {
-    socket.broadcast.emit("receive-stroke", stroke);
+  socket.on("join-room", (roomId) => {
+    socket.join(roomId);
+
+    console.log(`${socket.id} joined ${roomId}`);
+
+    if (!roomStrokes[roomId]) {
+      roomStrokes[roomId] = [];
+    }
+
+    socket.emit(
+      "load-strokes",
+      roomStrokes[roomId]
+    );
+  });
+
+  socket.on("draw-stroke", ({ roomId, stroke }) => {
+    if (!roomStrokes[roomId]) {
+      roomStrokes[roomId] = [];
+    }
+
+    roomStrokes[roomId].push(stroke);
+
+    socket.to(roomId).emit(
+      "receive-stroke",
+      stroke
+    );
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    console.log(
+      "User disconnected:",
+      socket.id
+    );
   });
 });
 

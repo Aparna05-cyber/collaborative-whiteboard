@@ -8,36 +8,77 @@ function App() {
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [redoStack, setRedoStack] = useState<Stroke[]>([]);
 
-  const [selectedColor, setSelectedColor] = useState("black");
-  const [brushSize, setBrushSize] = useState(3);
+  const [roomInput, setRoomInput] = useState("");
+  const [roomId, setRoomId] = useState("");
+
+  const [selectedColor, setSelectedColor] =
+    useState("black");
+
+  const [brushSize, setBrushSize] =
+    useState(3);
 
   useEffect(() => {
-  socket.on("connect", () => {
-    console.log("Connected:", socket.id);
-  });
+    socket.on("connect", () => {
+      console.log("Connected:", socket.id);
+    });
 
-  socket.on("receive-stroke", (stroke: Stroke) => {
-    setStrokes((prev) => [...prev, stroke]);
-  });
+    socket.on(
+      "receive-stroke",
+      (stroke: Stroke) => {
+        setStrokes((prev) => [
+          ...prev,
+          stroke,
+        ]);
+      }
+    );
 
-  return () => {
-    socket.off("connect");
-    socket.off("receive-stroke");
+    socket.on(
+      "load-strokes",
+      (savedStrokes: Stroke[]) => {
+        setStrokes(savedStrokes);
+      }
+    );
+
+    return () => {
+      socket.off("connect");
+      socket.off("receive-stroke");
+      socket.off("load-strokes");
+    };
+  }, []);
+
+  const joinRoom = () => {
+    if (!roomInput.trim()) return;
+
+    socket.emit("join-room", roomInput);
+
+    setRoomId(roomInput);
+
+    setRedoStack([]);
+
+    console.log(
+      `Joined room: ${roomInput}`
+    );
   };
-}, []);
 
   const addStroke = (stroke: Stroke) => {
-  setStrokes((prev) => [...prev, stroke]);
-  setRedoStack([]);
+    setStrokes((prev) => [...prev, stroke]);
 
-  socket.emit("draw-stroke", stroke);
-};
+    setRedoStack([]);
+
+    if (roomId) {
+      socket.emit("draw-stroke", {
+        roomId,
+        stroke,
+      });
+    }
+  };
 
   const undo = () => {
     setStrokes((prev) => {
       if (prev.length === 0) return prev;
 
-      const lastStroke = prev[prev.length - 1];
+      const lastStroke =
+        prev[prev.length - 1];
 
       setRedoStack((redoPrev) => [
         ...redoPrev,
@@ -52,7 +93,8 @@ function App() {
     setRedoStack((prev) => {
       if (prev.length === 0) return prev;
 
-      const strokeToRestore = prev[prev.length - 1];
+      const strokeToRestore =
+        prev[prev.length - 1];
 
       setStrokes((strokePrev) => [
         ...strokePrev,
@@ -70,6 +112,37 @@ function App() {
 
   return (
     <>
+      <div
+        style={{
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+          zIndex: 1000,
+          background: "white",
+          padding: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "8px",
+        }}
+      >
+        <input
+          type="text"
+          placeholder="Room Name"
+          value={roomInput}
+          onChange={(e) =>
+            setRoomInput(e.target.value)
+          }
+        />
+
+        <button onClick={joinRoom}>
+          Join Room
+        </button>
+
+        <div>
+          Current Room:{" "}
+          {roomId || "Not Joined"}
+        </div>
+      </div>
+
       <Toolbar
         onClear={clear}
         onUndo={undo}
