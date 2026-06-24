@@ -11,20 +11,21 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
   },
 });
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
+  socket.on("draw-stroke", (stroke) => {
+    socket.broadcast.emit("receive-stroke", stroke);
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
-});
-
-app.get("/", (req, res) => {
-  res.send("Whiteboard Server Running");
 });
 
 server.listen(5000, () => {

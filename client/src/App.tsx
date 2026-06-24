@@ -12,19 +12,26 @@ function App() {
   const [brushSize, setBrushSize] = useState(3);
 
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Connected:", socket.id);
-    });
+  socket.on("connect", () => {
+    console.log("Connected:", socket.id);
+  });
 
-    return () => {
-      socket.off("connect");
-    };
-  }, []);
+  socket.on("receive-stroke", (stroke: Stroke) => {
+    setStrokes((prev) => [...prev, stroke]);
+  });
+
+  return () => {
+    socket.off("connect");
+    socket.off("receive-stroke");
+  };
+}, []);
 
   const addStroke = (stroke: Stroke) => {
-    setStrokes((prev) => [...prev, stroke]);
-    setRedoStack([]);
-  };
+  setStrokes((prev) => [...prev, stroke]);
+  setRedoStack([]);
+
+  socket.emit("draw-stroke", stroke);
+};
 
   const undo = () => {
     setStrokes((prev) => {
