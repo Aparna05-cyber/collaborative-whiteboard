@@ -20,45 +20,104 @@ function Toolbar({
   onBrushSizeChange,
 }: ToolbarProps) {
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: "20px",
-        left: "20px",
-        backgroundColor: "white",
-        padding: "10px",
-        border: "1px solid #ccc",
-        borderRadius: "8px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        zIndex: 1000,
-        display: "flex",
-        gap: "10px",
-        alignItems: "center",
-        flexWrap: "wrap",
-      }}
-    >
-      <button onClick={onClear}>Clear</button>
-      <button onClick={onUndo}>Undo</button>
-      <button onClick={onRedo}>Redo</button>
+  <div className="sidebar">
+    <h3>Tools</h3>
 
-      <button onClick={() => onColorChange("black")}>Black</button>
-      <button onClick={() => onColorChange("red")}>Red</button>
-      <button onClick={() => onColorChange("blue")}>Blue</button>
-      <button onClick={() => onColorChange("green")}>Green</button>
-      <button onClick={() => onColorChange("white")}>Eraser</button>
+    <p>Colors</p>
 
-      <span>Current: {selectedColor}</span>
+    <div className="color-row">
+      <div
+        className="color-circle"
+        style={{
+          background: "black",
+        }}
+        onClick={() =>
+          onColorChange("black")
+        }
+      />
 
-      <span>Brush:</span>
+      <div
+        className="color-circle"
+        style={{
+          background: "red",
+        }}
+        onClick={() =>
+          onColorChange("red")
+        }
+      />
 
-      <button onClick={() => onBrushSizeChange(1)}>1</button>
-      <button onClick={() => onBrushSizeChange(3)}>3</button>
-      <button onClick={() => onBrushSizeChange(5)}>5</button>
-      <button onClick={() => onBrushSizeChange(10)}>10</button>
+      <div
+        className="color-circle"
+        style={{
+          background: "blue",
+        }}
+        onClick={() =>
+          onColorChange("blue")
+        }
+      />
 
-      <span>Size: {brushSize}</span>
+      <div
+        className="color-circle"
+        style={{
+          background: "green",
+        }}
+        onClick={() =>
+          onColorChange("green")
+        }
+      />
+
+      <div
+        className="color-circle"
+        style={{
+          background: "#f1f5f9",
+          border:
+            "1px solid #cbd5e1",
+        }}
+        onClick={() =>
+          onColorChange("white")
+        }
+      />
     </div>
-  );
+
+    <p>
+      Brush Size : {brushSize}
+    </p>
+
+    <input
+      className="brush-slider"
+      type="range"
+      min="1"
+      max="20"
+      value={brushSize}
+      onChange={(e) =>
+        onBrushSizeChange(
+          Number(e.target.value)
+        )
+      }
+    />
+
+    <button
+      className="tool-button"
+      onClick={onUndo}
+    >
+      ↩ Undo
+    </button>
+
+    <button
+      className="tool-button"
+      onClick={onRedo}
+    >
+      ↪ Redo
+    </button>
+
+    <button
+      className="tool-button"
+      onClick={onClear}
+    >
+      🧹 Clear
+    </button>
+  </div>
+);
 }
 
 export default Toolbar;

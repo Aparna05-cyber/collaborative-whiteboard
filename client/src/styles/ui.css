@@ -1,0 +1,108 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: Inter, Arial, sans-serif;
+  background: #111827;
+}
+
+.topbar {
+  position: fixed;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  width: 85%;
+
+  padding: 14px 24px;
+
+  border-radius: 18px;
+
+  background: rgba(255,255,255,0.08);
+
+  backdrop-filter: blur(15px);
+
+  border: 1px solid rgba(255,255,255,0.15);
+
+  color: white;
+
+  z-index: 1000;
+}
+
+.sidebar {
+  position: fixed;
+
+  top: 100px;
+  left: 20px;
+
+  width: 220px;
+
+  padding: 20px;
+
+  border-radius: 20px;
+
+  background: rgba(255,255,255,0.08);
+
+  backdrop-filter: blur(15px);
+
+  border: 1px solid rgba(255,255,255,0.15);
+
+  color: white;
+
+  z-index: 1000;
+}
+
+.tool-button {
+  width: 100%;
+
+  padding: 12px;
+
+  margin-top: 10px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  background: #1f2937;
+
+  color: white;
+
+  transition: all 0.2s ease;
+}
+
+.tool-button:hover {
+  transform: translateY(-2px);
+
+  background: #374151;
+}
+
+.color-row {
+  display: flex;
+
+  gap: 10px;
+
+  margin-top: 10px;
+}
+
+.color-circle {
+  width: 28px;
+
+  height: 28px;
+
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  border: 2px solid white;
+}
+
+.brush-slider {
+  width: 100%;
+
+  margin-top: 10px;
+}

@@ -212,10 +212,19 @@ function Canvas({
     <canvas
       ref={canvasRef}
       style={{
-        display: "block",
-        width: "100vw",
-        height: "100vh",
-      }}
+  display: "block",
+  width: "100vw",
+  height: "100vh",
+
+  backgroundColor: "#f8fafc",
+
+  backgroundImage: `
+    linear-gradient(#e5e7eb 1px, transparent 1px),
+    linear-gradient(90deg,#e5e7eb 1px, transparent 1px)
+  `,
+
+  backgroundSize: "25px 25px",
+}}
     />
   );
 }

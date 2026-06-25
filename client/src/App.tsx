@@ -3,6 +3,8 @@ import Canvas from "./components/Canvas";
 import Toolbar from "./components/Toolbar";
 import type { Stroke } from "./types/drawing";
 import { socket } from "./services/socket";
+import "./styles/ui.css";
+import "./App.css";
 
 function App() {
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -170,16 +172,17 @@ function App() {
 
   return (
     <>
+      return (
+  <>
+    <div className="topbar">
+      <h2>
+        Collaborative Whiteboard
+      </h2>
+
       <div
         style={{
-          position: "fixed",
-          top: "20px",
-          right: "20px",
-          zIndex: 1000,
-          background: "white",
-          padding: "10px",
-          border: "1px solid #ccc",
-          borderRadius: "8px",
+          display: "flex",
+          gap: "10px",
         }}
       >
         <input
@@ -194,19 +197,48 @@ function App() {
         />
 
         <button
-          onClick={
-            joinRoom
-          }
+          className="tool-button"
+          onClick={joinRoom}
         >
-          Join Room
+          Join
         </button>
-
-        <div>
-          Current Room:{" "}
-          {roomId ||
-            "Not Joined"}
-        </div>
       </div>
+
+      <div className="room-status">
+        🟢 {roomId || "Offline"}
+      </div>
+    </div>
+
+    <Toolbar
+      onClear={clear}
+      onUndo={undo}
+      onRedo={redo}
+      selectedColor={
+        selectedColor
+      }
+      onColorChange={
+        setSelectedColor
+      }
+      brushSize={
+        brushSize
+      }
+      onBrushSizeChange={
+        setBrushSize
+      }
+    />
+
+    <Canvas
+      strokes={strokes}
+      addStroke={addStroke}
+      selectedColor={
+        selectedColor
+      }
+      brushSize={
+        brushSize
+      }
+    />
+  </>
+);
 
       <Toolbar
         onClear={clear}
