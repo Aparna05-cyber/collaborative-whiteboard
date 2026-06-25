@@ -24,7 +24,9 @@ io.on("connection", (socket) => {
   socket.on("join-room", (roomId) => {
     socket.join(roomId);
 
-    console.log(`${socket.id} joined ${roomId}`);
+    console.log(
+      `${socket.id} joined ${roomId}`
+    );
 
     if (!roomStrokes[roomId]) {
       roomStrokes[roomId] = [];
@@ -36,18 +38,33 @@ io.on("connection", (socket) => {
     );
   });
 
-  socket.on("draw-stroke", ({ roomId, stroke }) => {
-    if (!roomStrokes[roomId]) {
-      roomStrokes[roomId] = [];
+  socket.on(
+    "draw-stroke",
+    ({ roomId, stroke }) => {
+      if (!roomStrokes[roomId]) {
+        roomStrokes[roomId] = [];
+      }
+
+      roomStrokes[roomId].push(stroke);
+
+      io.to(roomId).emit(
+        "board-updated",
+        roomStrokes[roomId]
+      );
     }
+  );
 
-    roomStrokes[roomId].push(stroke);
+  socket.on(
+    "sync-board",
+    ({ roomId, strokes }) => {
+      roomStrokes[roomId] = strokes;
 
-    socket.to(roomId).emit(
-      "receive-stroke",
-      stroke
-    );
-  });
+      io.to(roomId).emit(
+        "board-updated",
+        strokes
+      );
+    }
+  );
 
   socket.on("disconnect", () => {
     console.log(
@@ -58,5 +75,7 @@ io.on("connection", (socket) => {
 });
 
 server.listen(5000, () => {
-  console.log("Server running on port 5000");
+  console.log(
+    "Server running on port 5000"
+  );
 });

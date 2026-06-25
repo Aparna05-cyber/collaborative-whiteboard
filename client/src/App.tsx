@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Canvas from "./components/Canvas";
 import Toolbar from "./components/Toolbar";
 import type { Stroke } from "./types/drawing";
@@ -11,6 +11,8 @@ function App() {
   const [roomInput, setRoomInput] = useState("");
   const [roomId, setRoomId] = useState("");
 
+  const roomRef = useRef("");
+
   const [selectedColor, setSelectedColor] =
     useState("black");
 
@@ -19,16 +21,16 @@ function App() {
 
   useEffect(() => {
     socket.on("connect", () => {
-      console.log("Connected:", socket.id);
+      console.log(
+        "Connected:",
+        socket.id
+      );
     });
 
     socket.on(
-      "receive-stroke",
-      (stroke: Stroke) => {
-        setStrokes((prev) => [
-          ...prev,
-          stroke,
-        ]);
+      "board-updated",
+      (updatedStrokes: Stroke[]) => {
+        setStrokes(updatedStrokes);
       }
     );
 
@@ -41,73 +43,129 @@ function App() {
 
     return () => {
       socket.off("connect");
-      socket.off("receive-stroke");
+      socket.off("board-updated");
       socket.off("load-strokes");
     };
   }, []);
 
   const joinRoom = () => {
-    if (!roomInput.trim()) return;
+    const room = roomInput.trim();
 
-    socket.emit("join-room", roomInput);
+    if (!room) return;
 
-    setRoomId(roomInput);
+    roomRef.current = room;
 
+    setRoomId(room);
+
+    setStrokes([]);
     setRedoStack([]);
 
-    console.log(
-      `Joined room: ${roomInput}`
+    socket.emit(
+      "join-room",
+      room
     );
   };
 
   const addStroke = (stroke: Stroke) => {
-    setStrokes((prev) => [...prev, stroke]);
+    const updatedStrokes = [
+      ...strokes,
+      stroke,
+    ];
+
+    setStrokes(updatedStrokes);
 
     setRedoStack([]);
 
-    if (roomId) {
-      socket.emit("draw-stroke", {
-        roomId,
+    if (!roomRef.current) return;
+
+    socket.emit(
+      "draw-stroke",
+      {
+        roomId:
+          roomRef.current,
         stroke,
-      });
-    }
+      }
+    );
   };
 
   const undo = () => {
-    setStrokes((prev) => {
-      if (prev.length === 0) return prev;
+    if (strokes.length === 0)
+      return;
 
-      const lastStroke =
-        prev[prev.length - 1];
+    const lastStroke =
+      strokes[strokes.length - 1];
 
-      setRedoStack((redoPrev) => [
-        ...redoPrev,
-        lastStroke,
-      ]);
+    const updatedStrokes =
+      strokes.slice(0, -1);
 
-      return prev.slice(0, -1);
-    });
+    setRedoStack((prev) => [
+      ...prev,
+      lastStroke,
+    ]);
+
+    setStrokes(updatedStrokes);
+
+    if (roomRef.current) {
+      socket.emit(
+        "sync-board",
+        {
+          roomId:
+            roomRef.current,
+          strokes:
+            updatedStrokes,
+        }
+      );
+    }
   };
 
   const redo = () => {
-    setRedoStack((prev) => {
-      if (prev.length === 0) return prev;
+    if (redoStack.length === 0)
+      return;
 
-      const strokeToRestore =
-        prev[prev.length - 1];
+    const strokeToRestore =
+      redoStack[
+        redoStack.length - 1
+      ];
 
-      setStrokes((strokePrev) => [
-        ...strokePrev,
-        strokeToRestore,
-      ]);
+    const updatedRedo =
+      redoStack.slice(0, -1);
 
-      return prev.slice(0, -1);
-    });
+    const updatedStrokes = [
+      ...strokes,
+      strokeToRestore,
+    ];
+
+    setRedoStack(updatedRedo);
+
+    setStrokes(updatedStrokes);
+
+    if (roomRef.current) {
+      socket.emit(
+        "sync-board",
+        {
+          roomId:
+            roomRef.current,
+          strokes:
+            updatedStrokes,
+        }
+      );
+    }
   };
 
   const clear = () => {
     setStrokes([]);
     setRedoStack([]);
+
+    if (roomRef.current) {
+      socket.emit(
+        "sync-board",
+        {
+          roomId:
+            roomRef.current,
+          strokes: [],
+        }
+      );
+    }
   };
 
   return (
@@ -129,17 +187,24 @@ function App() {
           placeholder="Room Name"
           value={roomInput}
           onChange={(e) =>
-            setRoomInput(e.target.value)
+            setRoomInput(
+              e.target.value
+            )
           }
         />
 
-        <button onClick={joinRoom}>
+        <button
+          onClick={
+            joinRoom
+          }
+        >
           Join Room
         </button>
 
         <div>
           Current Room:{" "}
-          {roomId || "Not Joined"}
+          {roomId ||
+            "Not Joined"}
         </div>
       </div>
 
@@ -147,17 +212,31 @@ function App() {
         onClear={clear}
         onUndo={undo}
         onRedo={redo}
-        selectedColor={selectedColor}
-        onColorChange={setSelectedColor}
-        brushSize={brushSize}
-        onBrushSizeChange={setBrushSize}
+        selectedColor={
+          selectedColor
+        }
+        onColorChange={
+          setSelectedColor
+        }
+        brushSize={
+          brushSize
+        }
+        onBrushSizeChange={
+          setBrushSize
+        }
       />
 
       <Canvas
         strokes={strokes}
-        addStroke={addStroke}
-        selectedColor={selectedColor}
-        brushSize={brushSize}
+        addStroke={
+          addStroke
+        }
+        selectedColor={
+          selectedColor
+        }
+        brushSize={
+          brushSize
+        }
       />
     </>
   );
